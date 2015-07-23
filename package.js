@@ -28,7 +28,7 @@ Package.onUse(function (api) {
 });
 
 Package.onTest(function (api) {
-  api.use('sanjo:jasmine@0.14.0');
+  api.use('sanjo:jasmine@0.15.0');
   api.use('coffeescript');
   api.use('spacebars');
   api.use('storeness:meteor-postgres');

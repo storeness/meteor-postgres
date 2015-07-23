@@ -37,10 +37,10 @@ describe 'serverSQL', ->
     it 'throws an error if an insert contains unknown columns', ->
       expect( -> testTasks.insert({ text: 'failure', username: 'eric' }).save()).toThrow()
 
-    it 'throws an error if an unknown column should get updated', ->
+    it 'throws an error if an unknown column gets updated', ->
       expect( -> testTasks.update({username: 'kate'}).where('text = ?', 'testing3').save()).toThrow()
 
-    it 'throws no error if an unknown table should get removed', ->
+    it 'throws no error if an unknown table gets removed', ->
       expect( -> testTasks.dropTable('unknownTable').save()).not.toThrow()
 
   describe 'fetch', ->
@@ -69,7 +69,7 @@ describe 'serverSQL', ->
       it 'works with basic where', (done) ->
         testTasks.select().where('text = ?', 'testing1').fetch undefined, undefined, (error, result) ->
           string_where = result?.rows
-          expect(string_where.length).toBe(6)
+          expect(string_where?.length).toBe(6)
           _.each string_where, (row) -> expect(row.text).toBe('testing1')
           testTasks.select().where('text = ?', ['testing1']).fetch undefined, undefined, (error, result) ->
             array_where = result?.rows
@@ -179,7 +179,7 @@ describe 'serverSQL', ->
           testTasks.update({ text: 'testing1' }).where('text = ?', 'testing2').save undefined, undefined, (error, result) ->
             testTasks.select().where('text = ?', 'testing1').fetch undefined, undefined, (error, result) ->
               after = result?.rows
-              expect(before.length + 1).toEqual(after.length)
+              expect(before?.length + 1).toEqual(after?.length)
               done()
 
       it 'updates correctly with multiple arguments', (done) ->
@@ -203,8 +203,8 @@ describe 'serverSQL', ->
             first = result?.row
             testTasks.select().where('text = ?', 'testing3').fetch undefined, undefined, (error, result) ->
               second = result?.row
-              expect(first.length).toBe(0)
-              expect(second.length).toBe(8)
+              expect(first?.length).toBe(0)
+              expect(second?.length).toBe(8)
               done()
 
     describe 'remove', ->

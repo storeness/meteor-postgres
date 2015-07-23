@@ -514,23 +514,6 @@ serverSQL.prototype.createRelationship = function(relTable, relationship){
 
 /**
  *
- * @returns {string|*|string} input string
- */
-serverSQL.prototype.returnSql = function(){
-  var table = this.table;
-  var dataArray = this.dataArray;
-  var prevFunc = this.prevFunc;
-
-  var starter = this.updateString || this.deleteString || this.selectString;
-
-  var input = this.inputString.length > 0 ? this.inputString : starter + this.joinString + this.whereString + this.orderString + this.limitString +
-  this.offsetString + this.groupString + this.havingString + ';';
-
-  return input;
-};
-
-/**
- *
  * @param sub
  */
 serverSQL.prototype.autoSelect = function(sub) {
