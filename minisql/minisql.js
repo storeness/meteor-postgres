@@ -50,8 +50,8 @@ miniSQL.prototype.createTable = function(tableObj) {
   };
 
   var _TableConstraints = {
-    $unique: 'unique',
-    $check: 'check ', // value
+    $unique:  'unique',
+    $check:   'check ', // value
     $exclude: 'exclude',
     $notnull: 'not null',
     $default: 'default ', // value
@@ -88,6 +88,7 @@ miniSQL.prototype.createTable = function(tableObj) {
 
   this.inputString = startString + inputString + " createdat Date); ";
   this.prevFunc = 'CREATE TABLE';
+  console.log(new Date(), 'create Table');
   alasql(this.inputString);
   this.clearAll();
   return this;
@@ -135,8 +136,6 @@ miniSQL.prototype.insert = function(serverInserts, clientInserts) {
   }
 
   this.inputString = insertString.substring(0, insertString.length - 2) + valueString.substring(0, valueString.length - 2) + ');';
-
-
 
   this.prevFunc = 'INSERT';
   return this;
@@ -362,6 +361,9 @@ miniSQL.prototype.save = function(client) {
   var starter = this.updateString || this.deleteString || this.selectString;
   var input = this.inputString2.length > 0 ? this.inputString2 : starter + this.joinString + this.clientWhereString + ';';
 
+  console.log(input);
+  console.log(dataArray2);
+  console.log(alasql('SHOW TABLES'));
   var result = alasql(input, dataArray2);
   // postgres
   var name = this.table + 'save';

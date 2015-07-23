@@ -1,12 +1,8 @@
 Package.describe({
   name: 'storeness:meteor-postgres',
   version: '0.1.5',
-  // Brief, one-line summary of the package.
   summary: 'PostgreSQL support for Meteor',
-  // URL to the Git repository containing the source code for this package.
   git: 'https://github.com/storeness/meteor-postgres',
-  // By default, Meteor will default to using README.md for documentation.
-  // To avoid submitting documentation, set this field to null.
   documentation: 'README.md'
 });
 
@@ -15,8 +11,7 @@ Npm.depends({
 });
 
 Package.onUse(function (api) {
-  // The order these files are imported is very important
-  api.versionsFrom('1.1.0.1');
+  api.versionsFrom('1.1.0.2');
   api.use('underscore');
   api.use('tracker');
   api.use('ddp');
@@ -30,16 +25,27 @@ Package.onUse(function (api) {
 
   api.addFiles('collection/collection.js');
   api.export('SQL');
-
 });
 
 Package.onTest(function (api) {
-  api.versionsFrom('1.1');
-  api.use(['spacebars', 'tinytest', 'test-helpers', 'underscore', 'tracker', 'ddp']);
-  api.addFiles('postgres/serversql.js', 'server');
-  api.export('serverSQL', 'server');
-  api.addFiles('collection/collection.js', ['server', 'client']);
-  api.export('SQL', ['server', 'client']);
-  api.addFiles('collection/collection_tests.js');
-  api.addFiles('postgres/sqlserver_tests.js', 'server');
+  api.use('sanjo:jasmine@0.14.0');
+  api.use('coffeescript');
+  api.use('spacebars');
+  api.use('storeness:meteor-postgres');
+
+  // Start postgres test-server
+  api.use('numtel:pg-server');
+  api.addFiles('tests/db-settings.pg.json');
+
+  api.addFiles([
+    'tests/jasmine/server/collectionSpec.coffee'
+  ]);
+
+  api.addFiles([
+    'tests/jasmine/client/minisqlSpec.coffee'
+  ], 'client');
+
+  api.addFiles([
+    'tests/jasmine/server/serversqlSpec.coffee'
+  ], 'server');
 });

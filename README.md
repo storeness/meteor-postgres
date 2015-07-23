@@ -7,7 +7,7 @@
 
 ### Installation
 
-Run the following from a command line.
+Run the following from your command line.
 
 ```
     meteor add storeness:meteor-postgres
@@ -18,6 +18,16 @@ or add this to your `package.js`
 ```
     api.use('storeness:meteor-postgres');
 ```
+
+### Tests
+
+To run the test execute the following from your command line.
+
+```
+MP_POSTGRES=postgres://{YOUR USERNAME ON THE MACHINE}:numtel@localhost:5439/postgres JASMINE_SERVER_UNIT=1 VELOCITY_TEST_PACKAGES=1 meteor --port 4000 test-packages --driver-package velocity:html-reporter storeness:meteor-postgres
+```
+
+and check on [localhost:4000](http://localhost:4000)
 
 ### Usage
 

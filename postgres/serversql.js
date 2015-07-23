@@ -91,7 +91,7 @@ serverSQL.prototype._TableConstraints = {
  */
 serverSQL.prototype.createTable = function (tableObj) {
 
-  var startString = 'CREATE TABLE ' + this.table + ' (';
+  var startString = 'CREATE TABLE \"' + this.table + '\" (';
   var item, subKey, valOperator, inputString = '';
 
   for (var key in tableObj) {
@@ -248,7 +248,7 @@ serverSQL.prototype.findOne = function (/*arguments*/) {
     var args = arguments[0];
     this.inputString = 'SELECT * FROM ' + this.table + ' WHERE ' + this.table + '.id = \'' + args + '\' LIMIT 1;';
   } else {
-    this.inputString = 'SELECT * FROM ' + this.table + ' LIMIT 1';
+    this.inputString = 'SELECT * FROM ' + this.table + ' LIMIT 1;';
   }
   this.prevFunc = 'FIND ONE';
   return this;
@@ -419,7 +419,6 @@ serverSQL.prototype.fetch = function (input, data, cb) {
     this.offsetString + this.groupString + this.havingString + ';';
   }
 
-  //cb = cb || function(prevFunc, table, results) {return console.log("results in " + prevFunc + ' ' + table, results.rows)};
   pg.connect(this.conString, function (err, client, done) {
     if (err) {
       console.log(err, "in " + prevFunc + ' ' + table);

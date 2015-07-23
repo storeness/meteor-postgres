@@ -46,6 +46,7 @@ SQL.Collection = function(connection) {
     // Added will only be triggered on the initial population of the database client side.
     // Data added to any client while the page is already loaded will trigger a 'changed event'
     this.addEventListener('added', function(index, msg, name) {
+      console.log(new Date(), 'create Collection');
       this.remove().save('client');
       for (var x = msg.results.length - 1; x >= 0; x--) {
         this.insert(msg.results[x]).save('client');
