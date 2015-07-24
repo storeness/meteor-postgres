@@ -12,25 +12,37 @@ Npm.depends({
 
 Package.onUse(function (api) {
   api.versionsFrom('1.1.0.2');
+  api.use('coffeescript');
   api.use('underscore');
   api.use('tracker');
   api.use('ddp');
 
-  // minisql
-  api.addFiles(['minisql/alasql.js', 'minisql/alasql.js.map', 'minisql/minisql.js'], 'client');
-  api.export('miniSQL', 'client');
+  api.addFiles('lib/init.js', ['client', 'server']);
 
-  api.addFiles('postgres/serversql.js', 'server');
-  api.export('serverSQL', 'server');
+  api.addFiles([
+    'lib/serversql.coffee'
+  ], 'server');
 
-  api.addFiles('collection/collection.js');
+  api.addFiles([
+    'lib/collection.js'
+  ]);
+
+  api.addFiles([
+    'lib/minisql/alasql.js',
+    'lib/minisql/alasql.js.map',
+    'lib/minisql.js'
+  ], 'client');
+
   api.export('SQL');
+  api.export('miniSQL');
+  api.export('serverSQL');
 });
 
 Package.onTest(function (api) {
-  api.use('sanjo:jasmine@0.15.0');
+  api.use('sanjo:jasmine@0.15.1');
   api.use('coffeescript');
   api.use('spacebars');
+  api.use('underscore');
   api.use('storeness:meteor-postgres');
 
   // Start postgres test-server
