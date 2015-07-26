@@ -29,7 +29,7 @@ SQL.Collection = function(connection) {
 
   if (Meteor.isClient) {
     // Sets certain properties used for miniSQL
-    miniSQL(this);
+    SQL.Client(this);
   }
 
   if (Meteor.isServer){
@@ -169,13 +169,12 @@ var registerStore = function(connection, name) {
 SQL.Collection.prototype = new Array;
 _.extend(SQL.Collection.prototype, Tracker.Dependency.prototype);
 if (Meteor.isClient) {
-  // extends the proto with miniSQL Methods
-  _.extend(SQL.Collection.prototype, miniSQL.prototype);
+  // extends the proto with SQL.Client Methods
+  _.extend(SQL.Collection.prototype, SQL.Client.prototype);
 }
 
 if (Meteor.isServer){
   // extends the proto with SQL.Server Methods
-  console.log(SQL);
   _.extend(SQL.Collection.prototype, SQL.Server.prototype);
 }
 

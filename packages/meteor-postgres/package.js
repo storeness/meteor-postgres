@@ -16,26 +16,26 @@ Package.onUse(function (api) {
   api.use('underscore');
   api.use('tracker');
   api.use('ddp');
-
-  api.addFiles('lib/init.js', ['client', 'server']);
+  api.use('agershun:alasql');
 
   api.addFiles([
-    'lib/serversql.coffee'
+    'lib/init.js',
+    'lib/sql.coffee'
+  ], ['client', 'server']);
+
+  api.addFiles([
+    'lib/client.coffee'
+  ], 'client');
+
+  api.addFiles([
+    'lib/server.coffee'
   ], 'server');
 
   api.addFiles([
     'lib/collection.js'
   ]);
 
-  api.addFiles([
-    'lib/minisql/alasql.js',
-    'lib/minisql/alasql.js.map',
-    'lib/minisql.js'
-  ], 'client');
-
   api.export('SQL');
-  api.export('miniSQL');
-  api.export('serverSQL');
 });
 
 Package.onTest(function (api) {
@@ -49,15 +49,15 @@ Package.onTest(function (api) {
   api.use('numtel:pg-server');
   api.addFiles('tests/db-settings.pg.json');
 
-  api.addFiles([
-    'tests/jasmine/server/collectionSpec.coffee'
-  ]);
+  //api.addFiles([
+  //  'tests/jasmine/server/collectionSpec.coffee'
+  //]);
 
   api.addFiles([
-    'tests/jasmine/client/minisqlSpec.coffee'
+    'tests/jasmine/client/clientSpec.coffee'
   ], 'client');
 
   api.addFiles([
-    'tests/jasmine/server/serversqlSpec.coffee'
+    'tests/jasmine/server/serverSpec.coffee'
   ], 'server');
 });

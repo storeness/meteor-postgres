@@ -7,21 +7,24 @@ describe 'SQL.Server', ->
     username: ['$string', '$notnull']
     age: ['$number']
 
-  serversqlStub = (name) ->
+  sqlStub = (name) ->
     stub = SQL.Server()
     stub.table = name
     stub
 
-  testTasks = serversqlStub 'test_tasks'
-  testUsers = serversqlStub 'test_users'
+  testTasks = sqlStub 'test_tasks'
+  testUsers = sqlStub 'test_users'
 
   beforeEach (done) ->
-    testTasks.dropTable().save()
+    try
+      testTasks.dropTable().save()
+      testUsers.dropTable().save()
+    catch e
     testTasks.createTable(tableTestTasks).save()
     _(3).times (n) -> testTasks.insert({ text: "testing#{n + 1}" }).save()
     _(5).times (n) -> testTasks.insert({ text: "testing1" }).save()
 
-    testUsers.dropTable().save()
+
     testUsers.createTable(tableTestUsers).save()
     _(3).times (n) ->
       testUsers.insert({ username: "eddie#{n + 1}", age: 2 * n }).save()
@@ -31,7 +34,7 @@ describe 'SQL.Server', ->
   describe 'exceptions', ->
 
     it 'throws an error if an insert contains unknown columns', ->
-      expect( -> testTasks.insert({ text: 'failure', username: 'eric' }).save()).toThrow()
+      expect( -> testTasks.insert({ id: 100, text: 'failure', username: 'eric' }).save()).toThrow()
 
     it 'throws an error if an unknown column gets updated', ->
       expect( -> testTasks.update({username: 'kate'}).where('text = ?', 'testing3').save()).toThrow()
@@ -188,10 +191,10 @@ describe 'SQL.Server', ->
         expect(result.length).toBe(0)
 
       it 'updates all', ->
-        testTasks.update( {text: 'testing3'} ).save()
         first = testTasks.select().where('text = ?', 'testing1').fetch()?.rows
+        testTasks.update( {text: 'testing3'} ).save()
         second = testTasks.select().where('text = ?', 'testing3').fetch()?.rows
-        expect(first.length).toBe(0)
+        expect(first.length).toBe(6)
         expect(second.length).toBe(8)
 
     describe 'remove', ->
