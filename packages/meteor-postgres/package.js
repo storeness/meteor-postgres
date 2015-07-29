@@ -32,7 +32,7 @@ Package.onUse(function (api) {
   ], 'server');
 
   api.addFiles([
-    'lib/collection.js'
+    'lib/collection.coffee'
   ]);
 
   api.export('SQL');
@@ -49,9 +49,9 @@ Package.onTest(function (api) {
   api.use('numtel:pg-server');
   api.addFiles('tests/db-settings.pg.json');
 
-  //api.addFiles([
-  //  'tests/jasmine/server/collectionSpec.coffee'
-  //]);
+  api.addFiles([
+    'tests/jasmine/collectionSpec.coffee'
+  ]);
 
   api.addFiles([
     'tests/jasmine/client/clientSpec.coffee'

@@ -20,12 +20,12 @@ describe 'SQL.Server', ->
       testTasks.dropTable().save()
       testUsers.dropTable().save()
     catch e
-    testTasks.createTable(tableTestTasks).save()
+    testTasks.createTable(tableTestTasks)
     _(3).times (n) -> testTasks.insert({ text: "testing#{n + 1}" }).save()
     _(5).times (n) -> testTasks.insert({ text: "testing1" }).save()
 
 
-    testUsers.createTable(tableTestUsers).save()
+    testUsers.createTable(tableTestUsers)
     _(3).times (n) ->
       testUsers.insert({ username: "eddie#{n + 1}", age: 2 * n }).save()
       testUsers.insert({ username: "paulo", age: 27 }).save()
@@ -33,14 +33,8 @@ describe 'SQL.Server', ->
 
   describe 'exceptions', ->
 
-    it 'throws an error if an insert contains unknown columns', ->
-      expect( -> testTasks.insert({ id: 100, text: 'failure', username: 'eric' }).save()).toThrow()
-
-    it 'throws an error if an unknown column gets updated', ->
-      expect( -> testTasks.update({username: 'kate'}).where('text = ?', 'testing3').save()).toThrow()
-
-    it 'throws an error if an existing table gets created again', ->
-      expect( -> testTasks.createTable(tableTestTasks).save()).toThrow()
+    it 'throws no error if an existing table gets created again', ->
+      expect( -> testTasks.createTable(tableTestTasks)).not.toThrow()
 
     it 'throws no error if an unknown table gets removed', ->
       expect( -> testTasks.dropTable('unknownTable').save()).not.toThrow()
@@ -208,13 +202,3 @@ describe 'SQL.Server', ->
         testTasks.remove().save()
         result = testTasks.select().fetch()?.rows
         expect(result.length).toBe(0)
-
-  describe 'createRelationship', ->
-
-    it 'creates a correct one-to-many relationship', ->
-      testTasks.createRelationship('test_users', '$onetomany').save()
-      result = testTasks.select().fetch()
-      field = _.find result.fields, (field) -> field.name is 'test_usersid'
-      expect(field.name).toBeDefined()
-      expect(field.name).toBe('test_usersid')
-

@@ -20,12 +20,12 @@ describe 'SQL.Server', ->
       testTasks.dropTable().save()
       testUsers.dropTable().save()
     catch e
-    testTasks.createTable(tableTestTasks).save()
+    testTasks.createTable(tableTestTasks)
     _(3).times (n) -> testTasks.insert({ id: "#{n+1}", text: "testing#{n + 1}" }).save()
     _(5).times (n) -> testTasks.insert({ id: "#{n+1+3}", text: "testing1" }).save()
 
 
-    testUsers.createTable(tableTestUsers).save()
+    testUsers.createTable(tableTestUsers)
     _(3).times (n) ->
       testUsers.insert({ id: "#{n*2+1}", username: "eddie#{n + 1}", age: 2 * n }).save()
     _(3).times (n) ->
@@ -123,6 +123,13 @@ describe 'SQL.Server', ->
         testTasks.update({ text: 'testing1' }).where('id = ?', '2').save()
         after = testTasks.select().where('text = ?', 'testing1').fetch()
         expect(before.length + 1).toEqual(after.length)
+
+      it 'calls the server save method', ->
+        spyOn(Meteor, 'call')
+        testTasks.update({ text: 'testing1' }).where('id = ?', '2').save()
+        expect(Meteor.call).toHaveBeenCalled()
+        expect(Meteor.call.calls.argsFor(0)[0]).toBe('test_tasks_save')
+
 
       it 'updates correctly with multiple arguments', ->
         testUsers.update({username: 'PaulOS', age: 100}).where('username = ?', 'paulo').save()

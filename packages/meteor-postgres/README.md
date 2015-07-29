@@ -2,8 +2,15 @@
 
 ### Improvements
 
-- Proper support for string IDs
-
+- Tests
+- Proper support for IDs (including strings)
+- Cleaner code and API
+- Support of underscores in table and column names
+- Many bug fixes including
+  - errors on creating existent tables (convenient for server startup)
+  - postgres client event leak
+  - alasql column bug
+- Working example
 
 ### Installation
 

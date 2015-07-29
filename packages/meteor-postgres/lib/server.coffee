@@ -38,7 +38,7 @@ _.extend SQL.Server::, SQL.Sql::
 ###
 
 SQL.Server::createTable = (tableObj) ->
-  startString = "CREATE TABLE \"#{@table}\" ("
+  startString = "CREATE TABLE IF NOT EXISTS \"#{@table}\" ("
   item = undefined
   subKey = undefined
   valOperator = undefined
@@ -59,49 +59,38 @@ SQL.Server::createTable = (tableObj) ->
     inputString += ', '
 
   # check to see if id already provided
-  startString += 'id serial primary key,' if inputString.indexOf('id') is -1
+  startString += 'id serial primary key,' if inputString.indexOf(' id') is -1
 
+  watchTrigger = 'watched_table_trigger'
   @inputString = """
-    #{startString}#{inputString} createdat TIMESTAMP default now());
+    #{startString}#{inputString} created_at TIMESTAMP default now());
 
     CREATE OR REPLACE FUNCTION notify_trigger_#{@table}() RETURNS trigger AS $$
     BEGIN
       IF (TG_OP = 'DELETE') THEN
-        PERFORM pg_notify('notify_trigger_#{@table}', '[{' || TG_TABLE_NAME || ':"' || OLD.id || '"}, { operation: "' || TG_OP || '"}]');
+        PERFORM pg_notify('notify_trigger_#{@table}', '[{"' || TG_TABLE_NAME || '":"' || OLD.id || '"}, { "operation": "' || TG_OP || '"}]');
         RETURN old;
       ELSIF (TG_OP = 'INSERT') THEN
-        PERFORM pg_notify('notify_trigger_#{@table}', '[{' || TG_TABLE_NAME || ':"' || NEW.id || '"}, { operation: "' || TG_OP || '"}]');
+        PERFORM pg_notify('notify_trigger_#{@table}', '[{"' || TG_TABLE_NAME || '":"' || NEW.id || '"}, { "operation": "' || TG_OP || '"}]');
         RETURN new;
       ELSIF (TG_OP = 'UPDATE') THEN
-        PERFORM pg_notify('notify_trigger_#{@table}', '[{' || TG_TABLE_NAME || ':"' || NEW.id || '"}, { operation: "' || TG_OP || '"}]');
+        PERFORM pg_notify('notify_trigger_#{@table}', '[{"' || TG_TABLE_NAME || '":"' || NEW.id || '"}, { "operation": "' || TG_OP || '"}]');
         RETURN new;
       END IF;
     END;
     $$ LANGUAGE plpgsql;
-
-    CREATE TRIGGER watched_table_trigger AFTER INSERT OR DELETE OR UPDATE ON #{@table} FOR EACH ROW EXECUTE PROCEDURE notify_trigger_#{@table}();
   """
 
+
   @prevFunc = 'CREATE TABLE'
-  @
 
-###*
-# Type: Query
-# @param {string} relTable
-# @param {string} relationship
-###
+  executeQuery = Meteor.wrapAsync(@exec, @)
+  executeQuery @inputString, []
+  executeQuery "DROP TRIGGER IF EXISTS #{watchTrigger} ON #{@table};", []
+  executeQuery "CREATE TRIGGER #{watchTrigger} AFTER INSERT OR DELETE OR UPDATE ON #{@table} FOR EACH ROW EXECUTE PROCEDURE notify_trigger_#{@table}();", []
 
-SQL.Server::createRelationship = (relTable, relationship) ->
-  if relationship is "$onetomany"
-    @inputString = "ALTER TABLE #{@table} ADD #{relTable}id INTEGER references #{relTable}(id) ON DELETE CASCADE;"
-  else
-    @inputString = """
-      CREATE TABLE IF NOT EXISTS #{@table + relTable} (
-        #{@table}id integer references #{@table}(id) ON DELETE CASCADE,
-        #{relTable}id integer references #{relTable}(id) ON DELETE CASCADE,
-        PRIMARY KEY(#{@table}id, #{relTable}id));
-    """
-  @
+  @clearAll()
+  return
 
 ###*
 # Make a synchronous or asynchronous select on the table.
@@ -189,8 +178,12 @@ SQL.Server::save = ->
 
   if arguments.length is 0
     executeQuery = Meteor.wrapAsync(@exec, @)
-    result = executeQuery(input, data, callback)
-    return result
+    try
+      result = executeQuery(input, data, callback)
+      return result
+    catch e
+      console.error e.message
+      return e
   else
     @exec input, data, callback
   return
@@ -203,13 +196,14 @@ SQL.Server::save = ->
 SQL.Server::autoSelect = (sub) ->
   # We need a dedicated client to watch for changes on each table. We store these clients in
   # our clientHolder and only create a new one if one does not already exist
+  self = @
   table = @table
-  prevFunc = @prevFunc
-  newWhere = @whereString
-  newSelect = newSelect or @selectString
-  newJoin = newJoin or @joinString
+  strings = {}
+  strings.select = strings.select or @selectString
+  strings.join = strings.join or @joinString
+  strings.prevFunc = @prevFunc
 
-  @autoSelectInput = if @autoSelectInput != '' then @autoSelectInput else @selectString + @joinString + newWhere + @orderString + @limitString + ';'
+  @autoSelectInput = if @autoSelectInput != '' then @autoSelectInput else @selectString + @joinString + @whereString + @orderString + @limitString + ';'
 
   @autoSelectData = if @autoSelectData != '' then @autoSelectData else @dataArray
   value = @autoSelectInput
@@ -218,13 +212,14 @@ SQL.Server::autoSelect = (sub) ->
   loadAutoSelectClient = (name, cb) ->
     # Function to load a new client, store it, and then send it to the function to add the watcher
     client = new pg.Client(process.env.MP_POSTGRES)
+    client.on 'notification', (msg) -> self._notificationsDDP(sub, strings, msg)
     client.connect()
     clientHolder[name] = client
     cb client
 
-  autoSelectHelper = (client1) ->
+  autoSelectHelper = (client) ->
     # Selecting all from the table
-    client1.query value, (error, results) ->
+    client.query value, (error, results) ->
       if error
         console.log error, 'in autoSelect top'
       else
@@ -237,67 +232,75 @@ SQL.Server::autoSelect = (sub) ->
             results: results.rows
 
     # Adding notification triggers
-    query = client1.query "LISTEN notify_trigger_#{table}"
-    client1.on 'notification', (msg) ->
-      returnMsg = eval "(#{msg.payload})"
-      k = sub._name
-      if returnMsg[1].operation is 'DELETE'
-        tableId = returnMsg[0][k]
-        sub._session.send
-          msg: 'changed'
-          collection: sub._name
-          id: sub._subscriptionId
-          index: tableId
-          fields:
-            removed: true
-            reset: false
-            tableId: tableId
-
-      else if returnMsg[1].operation is 'UPDATE'
-        selectString = "#{newSelect + newJoin} WHERE #{table}.id = '#{returnMsg[0][table]}'"
-        pg.connect process.env.MP_POSTGRES, (err, client, done) ->
-          if err
-            console.log(err, "in #{prevFunc} #{table}")
-
-          client.query selectString, @autoSelectData, (error, results) ->
-            if error
-              console.log error, 'in autoSelect update'
-            else
-              done()
-              sub._session.send
-                msg: 'changed'
-                collection: sub._name
-                id: sub._subscriptionId
-                index: tableId
-                fields:
-                  modified: true
-                  removed: false
-                  reset: false
-                  results: results.rows[0]
-
-      else if returnMsg[1].operation is 'INSERT'
-        selectString = "#{newSelect + newJoin} WHERE #{table}.id = '#{returnMsg[0][table]}'"
-        pg.connect process.env.MP_POSTGRES, (err, client, done) ->
-          if err
-            console.log(err, "in #{prevFunc} #{table}")
-
-          client.query selectString, @autoSelectData, (error, results) ->
-            if error
-              console.log error
-            else
-              done()
-              sub._session.send
-                msg: 'changed'
-                collection: sub._name
-                id: sub._subscriptionId
-                fields:
-                  removed: false
-                  reset: false
-                  results: results.rows[0]
+    query = client.query "LISTEN notify_trigger_#{table}"
+    client.on 'notification', (msg) -> self._notificationsDDP(sub, strings, msg)
 
   # Checking to see if this table already has a dedicated client before adding the listener
   if clientHolder[table]
+    console.log 'auto', _.map(clientHolder, -> 1).length
     autoSelectHelper clientHolder[table]
   else
+    console.log 'init', _.map(clientHolder, -> 1).length
     loadAutoSelectClient table, autoSelectHelper
   return
+
+SQL.Server::_notificationsDDP = (sub, strings, msg) ->
+  message = JSON.parse msg.payload
+  console.log message[1].operation
+  k = sub._name
+  if message[1].operation is 'DELETE'
+    tableId = message[0][k]
+    sub._session.send
+      msg: 'changed'
+      collection: sub._name
+      id: sub._subscriptionId
+      index: tableId
+      fields:
+        removed: true
+        reset: false
+        tableId: tableId
+
+  else if message[1].operation is 'UPDATE'
+    selectString = "#{strings.select + strings.join} WHERE #{@table}.id = '#{message[0][@table]}'"
+    pg.connect process.env.MP_POSTGRES, (err, clientSub, done) ->
+      if err
+        console.log(err, "in #{prevFunc} #{@table}")
+
+      clientSub.query selectString, @autoSelectData, (error, results) ->
+        if error
+          console.error error.message, selectString
+        else
+          done()
+          sub._session.send
+            msg: 'changed'
+            collection: sub._name
+            id: sub._subscriptionId
+            index: tableId
+            fields:
+              modified: true
+              removed: false
+              reset: false
+              results: results.rows[0]
+
+  else if message[1].operation is 'INSERT'
+    selectString = "#{strings.select + strings.join} WHERE #{@table}.id = '#{message[0][@table]}'"
+    console.log selectString
+    pg.connect process.env.MP_POSTGRES, (err, clientSub, done) ->
+      if err
+        console.log(err, "in #{prevFunc} #{@table}")
+
+      clientSub.query selectString, @autoSelectData, (error, results) ->
+        if error
+          console.error error.message, selectString
+        else
+          done()
+          ddpPayload =
+            msg: 'changed'
+            collection: sub._name
+            id: sub._subscriptionId
+            fields:
+              removed: false
+              reset: false
+              results: results.rows[0]
+          console.log ddpPayload
+          sub._session.send ddpPayload
