@@ -1,6 +1,6 @@
 Package.describe({
   name: 'storeness:meteor-postgres',
-  version: '0.2.0',
+  version: '0.2.1',
   summary: 'PostgreSQL support for Meteor',
   git: 'https://github.com/storeness/meteor-postgres',
   documentation: 'README.md'

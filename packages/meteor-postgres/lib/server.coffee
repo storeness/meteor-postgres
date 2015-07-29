@@ -45,7 +45,7 @@ SQL.Server::createTable = (tableObj) ->
   inputString = ''
 
   for key of tableObj
-    inputString += "#{key} "
+    inputString += " #{key} "
     inputString += @_DataTypes[tableObj[key][0]]
     if _.isArray(tableObj[key]) && tableObj[key].length > 1
       for i in [1..(tableObj[key].length-1)]

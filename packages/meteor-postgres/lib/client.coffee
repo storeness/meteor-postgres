@@ -20,7 +20,7 @@ SQL.Client::createTable = (tableObj) ->
 
   for key of tableObj
     @tableElements[key] = key
-    inputString += key + ' '
+    inputString += " #{key} "
     inputString += @_DataTypes[tableObj[key][0]]
     if _.isArray(tableObj[key]) and tableObj[key].length > 1
       i = 1

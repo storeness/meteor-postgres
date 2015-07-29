@@ -39,6 +39,9 @@ describe 'SQL.Server', ->
     it 'throws no error if an unknown table gets removed', ->
       expect( -> testTasks.dropTable('unknownTable').save()).not.toThrow()
 
+    it 'throws no error if an id gets specifically specified on table creation', ->
+      expect( -> sqlStub('test_table').createTable({id: ['$string', '$primary'], text: ['$string', '$notnull']})).not.toThrow()
+
   describe 'fetch', ->
 
     describe 'findOne', ->
