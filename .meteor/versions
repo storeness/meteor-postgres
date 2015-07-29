@@ -1,4 +1,4 @@
-agershun:alasql@0.0.1
+agershun:alasql@0.2.0
 autoupdate@1.2.1
 base64@1.0.3
 binary-heap@1.0.3
@@ -40,7 +40,7 @@ routepolicy@1.0.5
 session@1.1.0
 spacebars@1.0.6
 spacebars-compiler@1.0.6
-storeness:meteor-postgres@0.1.5
+storeness:meteor-postgres@0.2.0
 templating@1.1.1
 tracker@1.0.7
 ui@1.0.6

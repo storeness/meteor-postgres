@@ -1,6 +1,6 @@
 Package.describe({
   name: 'storeness:meteor-postgres',
-  version: '0.1.5',
+  version: '0.2.0',
   summary: 'PostgreSQL support for Meteor',
   git: 'https://github.com/storeness/meteor-postgres',
   documentation: 'README.md'
@@ -16,7 +16,7 @@ Package.onUse(function (api) {
   api.use('underscore');
   api.use('tracker');
   api.use('ddp');
-  api.use('agershun:alasql');
+  api.use('agershun:alasql@0.2.0');
 
   api.addFiles([
     'lib/init.js',
