@@ -21,14 +21,14 @@ describe 'SQL.Server', ->
       testUsers.dropTable().save()
     catch e
     testTasks.createTable(tableTestTasks)
-    _(3).times (n) -> testTasks.insert({ text: "testing#{n + 1}" }).save()
-    _(5).times (n) -> testTasks.insert({ text: "testing1" }).save()
+    _(3).times (n) -> testTasks.insert({ id: "#{n+1}", text: "testing#{n + 1}" }).save()
+    _(5).times (n) -> testTasks.insert({ id: "#{n+1+3}", text: "testing1" }).save()
 
 
     testUsers.createTable(tableTestUsers)
     _(3).times (n) ->
-      testUsers.insert({ username: "eddie#{n + 1}", age: 2 * n }).save()
-      testUsers.insert({ username: "paulo", age: 27 }).save()
+      testUsers.insert({ id: "#{n*2+1}", username: "eddie#{n + 1}", age: 2 * n }).save()
+      testUsers.insert({ id: "#{n*2+2}", username: "paulo", age: 27 }).save()
     done()
 
   describe 'exceptions', ->
@@ -100,8 +100,8 @@ describe 'SQL.Server', ->
       it 'works with multiple placeholders and array wheres', ->
         result = testTasks.select().where('id = ? AND text = ?', [1, 2, 3], ['testing1', 'testing2']).fetch()?.rows
         expect(result.length).toBe(2)
-        expect(result[0].id).toBe(1)
-        expect(result[1].id).toBe(2)
+        expect(result[0].id).toBe('1')
+        expect(result[1].id).toBe('2')
         expect(result[0].text).toBe('testing1')
         expect(result[1].text).toBe('testing2')
 
@@ -131,7 +131,7 @@ describe 'SQL.Server', ->
 
       it 'picks the right `last`', ->
         first = testTasks.select().last(4).fetch()?.rows
-        expect(first[1].id).toEqual(7)
+        expect(first[1].id).toEqual('7')
         second = testTasks.select().offset(2).where('text = ?', 'testing1').order('id DESC').limit(3).last().fetch()?.rows
         expect(JSON.stringify(first[0])).toEqual(JSON.stringify(second[0]))
 

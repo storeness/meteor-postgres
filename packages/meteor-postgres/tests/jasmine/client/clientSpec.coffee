@@ -20,6 +20,8 @@ describe 'SQL.Server', ->
       testTasks.dropTable().save()
       testUsers.dropTable().save()
     catch e
+      console.error e
+
     testTasks.createTable(tableTestTasks)
     _(3).times (n) -> testTasks.insert({ id: "#{n+1}", text: "testing#{n + 1}" }).save()
     _(5).times (n) -> testTasks.insert({ id: "#{n+1+3}", text: "testing1" }).save()
@@ -31,6 +33,13 @@ describe 'SQL.Server', ->
     _(3).times (n) ->
       testUsers.insert({ id: "#{n*2+2}", username: "paulo", age: 27 }).save()
     done()
+
+  describe 'createTable', ->
+
+    it 'has string IDs', ->
+      console.log testTasks.select().fetch()
+      result = testTasks.findOne().fetch()
+      expect(result[0].id).toEqual(jasmine.any(String))
 
   describe 'fetch', ->
 
@@ -116,6 +125,14 @@ describe 'SQL.Server', ->
 
   describe 'save', ->
 
+    describe 'insert', ->
+
+      it 'creates a string ID if none provided on INSERT', ->
+        testTasks.insert({ text: 'stringIdTest' }).save()
+        result = testTasks.select().where('text = ?', 'stringIdTest').fetch()
+        expect(result[0].id).toEqual(jasmine.any(String))
+        expect(result[0].id.split('').length).toBeGreaterThan(7)
+
     describe 'update', ->
 
       it 'updates correctly with single argument', ->
@@ -149,14 +166,14 @@ describe 'SQL.Server', ->
         testTasks.update( {text: 'testing3'} ).save()
         second = testTasks.select().where('text = ?', 'testing3').fetch()
         expect(first.length).toBe(7)
-        expect(second.length).toBe(8)
+        expect(second.length).toBe(9)
 
     describe 'remove', ->
 
       it 'removes correctly', ->
         testTasks.where('id = ?', '2').remove().save()
         result = testTasks.select().fetch()
-        expect(result.length).toBe(7)
+        expect(result.length).toBe(8)
 
       it 'removes all', ->
         testTasks.remove().save()

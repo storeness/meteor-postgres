@@ -58,8 +58,7 @@ SQL.Server::createTable = (tableObj) ->
           inputString += " #{@_TableConstraints[item]}"
     inputString += ', '
 
-  # check to see if id already provided
-  startString += 'id serial primary key,' if inputString.indexOf(' id') is -1
+  startString += 'id varchar(255) primary key,' if inputString.indexOf(' id') is -1
 
   watchTrigger = 'watched_table_trigger'
   @inputString = """
@@ -221,7 +220,7 @@ SQL.Server::autoSelect = (sub) ->
     # Selecting all from the table
     client.query value, (error, results) ->
       if error
-        console.log error, 'in autoSelect top'
+        console.error "#{error.message} in autoSelect top"
       else
         sub._session.send
           msg: 'added'
@@ -246,7 +245,6 @@ SQL.Server::autoSelect = (sub) ->
 
 SQL.Server::_notificationsDDP = (sub, strings, msg) ->
   message = JSON.parse msg.payload
-  console.log message[1].operation
   k = sub._name
   if message[1].operation is 'DELETE'
     tableId = message[0][k]
@@ -284,7 +282,6 @@ SQL.Server::_notificationsDDP = (sub, strings, msg) ->
 
   else if message[1].operation is 'INSERT'
     selectString = "#{strings.select + strings.join} WHERE #{@table}.id = '#{message[0][@table]}'"
-    console.log selectString
     pg.connect process.env.MP_POSTGRES, (err, clientSub, done) ->
       if err
         console.log(err, "in #{prevFunc} #{@table}")
@@ -302,5 +299,4 @@ SQL.Server::_notificationsDDP = (sub, strings, msg) ->
               removed: false
               reset: false
               results: results.rows[0]
-          console.log ddpPayload
           sub._session.send ddpPayload

@@ -86,11 +86,10 @@ if (Meteor.isClient) {
 }
 
 if (Meteor.isServer) {
-  tasks.createTable({text: ['$string'], checked: ["$bool", {'$default': false}], usernameid: ['$number']});
+  tasks.createTable({text: ['$string'], checked: ["$bool", {'$default': false}], usernameid: ['$string']});
   username.createTable({name: ['$string', '$unique']});
 
   username.insert({name:'all'}).save();
-
 
   tasks.publish('tasks', function(){
     return tasks.select('tasks.id as id', 'tasks.text', 'tasks.checked', 'tasks.created_at', 'username.id as usernameid', 'username.name')

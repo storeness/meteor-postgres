@@ -48,6 +48,8 @@ SQL.Sql::dropTable = ->
 
 SQL.Sql::insert = (insertObj) ->
   valueString = ') VALUES ('
+  insertObj.id ||= Random.id(19)
+
   keys = Object.keys insertObj
   insertString = "INSERT INTO #{@table} ("
   @dataArray = []

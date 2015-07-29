@@ -36,7 +36,7 @@ SQL.Client::createTable = (tableObj) ->
     inputString += ', '
 
   # check to see if id already provided
-  startString += 'id serial primary key,' if inputString.indexOf(' id') is -1
+  startString += 'id varchar(255) primary key,' if inputString.indexOf(' id') is -1
 
   @inputString = "#{startString}#{inputString} created_at Date);"
   @prevFunc = 'CREATE TABLE'
