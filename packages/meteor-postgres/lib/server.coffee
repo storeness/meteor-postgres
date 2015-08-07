@@ -236,10 +236,8 @@ SQL.Server::autoSelect = (sub) ->
 
   # Checking to see if this table already has a dedicated client before adding the listener
   if clientHolder[table]
-    console.log 'auto', _.map(clientHolder, -> 1).length
     autoSelectHelper clientHolder[table]
   else
-    console.log 'init', _.map(clientHolder, -> 1).length
     loadAutoSelectClient table, autoSelectHelper
   return
 
