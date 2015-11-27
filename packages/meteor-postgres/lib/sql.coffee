@@ -15,6 +15,7 @@ SQL.Sql::_DataTypes =
   $float: 'decimal'
   $seq: 'serial'
   $bool: 'boolean'
+  $timestamp: 'timestamp'
 
 ###*
 # Table Constraints
