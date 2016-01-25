@@ -38,7 +38,7 @@ or add this to your `package.js`
 To get started you might want to take a look at the [todo-example
 code](https://github.com/storeness/meteor-postgres/blob/simple-todo.js). You can run
 the code by cloning this repo locally and start it by running
-`MP_POSTGRES=postgres://{username}:{password}:{url}:{port}/{database_name}
+`MP_POSTGRES=postgres://{username}:{password}@{host}:{port}/{database_name}
 meteor` inside the cloned directory.
 
 ### Tests
