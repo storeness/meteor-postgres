@@ -13,6 +13,7 @@ SQL.Sql::_DataTypes =
   $json: 'json'
   $datetime: 'date'
   $float: 'decimal'
+  $double: 'double precision'
   $seq: 'serial'
   $bool: 'boolean'
   $timestamp: 'timestamp'
