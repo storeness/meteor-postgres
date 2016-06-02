@@ -9,6 +9,7 @@ SQL.Sql = ->
 
 SQL.Sql::_DataTypes =
   $number: 'integer'
+  $bigint: 'bigint'
   $string: 'varchar(255)'
   $json: 'json'
   $datetime: 'date'
