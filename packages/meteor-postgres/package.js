@@ -14,6 +14,7 @@ Package.onUse(function (api) {
   api.versionsFrom('1.1.0.2');
   api.use('coffeescript');
   api.use('underscore');
+  api.use('check');
   api.use('tracker');
   api.use('ddp');
   api.use('agershun:alasql@0.2.0');
