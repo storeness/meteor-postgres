@@ -2,6 +2,19 @@ describe 'SQL.Server', ->
 
   tableTestTasks =
     text: ['$string', '$notnull']
+    userid: ['$string']
+
+  tableTestConstraints = [
+    [
+      '$foreign'
+      {
+        $key: [ 'userid' ]
+        $ref:
+          $table: 'test_users'
+          $cols: [ 'id' ]
+      }
+    ]
+  ]
 
   tableTestUsers =
     username: ['$string', '$notnull']
@@ -20,15 +33,15 @@ describe 'SQL.Server', ->
       testTasks.dropTable().save()
       testUsers.dropTable().save()
     catch e
-    testTasks.createTable(tableTestTasks)
-    _(3).times (n) -> testTasks.insert({ id: "#{n+1}", text: "testing#{n + 1}" }).save()
-    _(5).times (n) -> testTasks.insert({ id: "#{n+1+3}", text: "testing1" }).save()
-
-
     testUsers.createTable(tableTestUsers)
     _(3).times (n) ->
       testUsers.insert({ id: "#{n*2+1}", username: "eddie#{n + 1}", age: 2 * n }).save()
       testUsers.insert({ id: "#{n*2+2}", username: "paulo", age: 27 }).save()
+
+
+    testTasks.createTable(tableTestTasks, tableTestConstraints)
+    _(3).times (n) -> testTasks.insert({ id: "#{n+1}", text: "testing#{n + 1}", userid: "#{(n % 6) + 1}" }).save()
+    _(5).times (n) -> testTasks.insert({ id: "#{n+1+3}", text: "testing1" }).save()
     done()
 
   describe 'exceptions', ->
@@ -165,6 +178,10 @@ describe 'SQL.Server', ->
         expect(result).toEqual(jasmine.any(Object))
         expect(result.command).toBe('UPDATE')
         done()
+
+    it 'returns an error if foreign key constraint is violated', ->
+      result = testTasks.insert({id: "100", text: "Posted by unkown", userid: "1904"}).save()
+      expect(result).toEqual(jasmine.any(Error))
 
     describe 'update', ->
 
