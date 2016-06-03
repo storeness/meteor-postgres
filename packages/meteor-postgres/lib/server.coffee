@@ -37,7 +37,14 @@ _.extend SQL.Server::, SQL.Sql::
 # @param tableObj
 ###
 
-SQL.Server::createTable = (tableObj) ->
+SQL.Server::createTable = (tableObj, constraints = []) ->
+  check constraints, [Match.Where((v) ->
+    # tuple(String, Object)
+    check v, Array
+    check v[0], String
+    check v[1], Object
+    v.length == 2)]
+
   startString = "CREATE TABLE IF NOT EXISTS \"#{@table}\" ("
   item = undefined
   subKey = undefined
@@ -59,6 +66,14 @@ SQL.Server::createTable = (tableObj) ->
     inputString += ', '
 
   startString += 'id varchar(255) primary key,' if inputString.indexOf(' id') is -1
+
+  # TableConstraints above are actually column constraints
+  # as specified by SQL standard.
+  # The following constraints are real table constraints.
+  # TODO - rename accordingly
+  for constraint in constraints
+    fn = @_Constraints[constraint[0]]
+    inputString += fn(constraint[1]) + ', ' if fn
 
   watchTrigger = 'watched_table_trigger'
   @inputString = """

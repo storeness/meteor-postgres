@@ -32,6 +32,30 @@ SQL.Sql::_TableConstraints =
   $primary: 'primary key'
 
 ###*
+# Table Constraints (the ones above are column constraints)
+# @type {{$foreign: function}}
+# @private
+###
+
+SQL.Sql::_Constraints =
+  $foreign: (opts) ->
+    check opts,
+      $key: [String]
+      $ref:
+        $table: String
+        $cols: Match.Optional([String])
+
+    quote = (v) -> "\"#{v.replace('"', '\\"')}\""
+    sql = "FOREIGN KEY ("
+    sql += _.map(opts.$key, quote).join(', ')
+    sql += ") REFERENCES #{quote opts.$ref.$table}"
+    if opts.$ref.$cols
+      sql += " ("
+      sql += _.map(opts.$ref.$cols, quote).join(', ')
+      sql += ")"
+    sql
+
+###*
 # Notes: Deletes cascade
 # SQL: DROP TABLE <table>
 ###
